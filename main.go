@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/0gener/banking-core/gateway/middleware"
-	"github.com/0gener/banking-core/gateway/router"
+	"github.com/0gener/banking-core-gateway/middleware"
+	"github.com/0gener/banking-core-gateway/router"
 	"github.com/joho/godotenv"
 )
 

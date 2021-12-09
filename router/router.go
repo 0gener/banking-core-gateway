@@ -1,7 +1,7 @@
 package router
 
 import (
-	"github.com/0gener/banking-core/gateway/middleware"
+	"github.com/0gener/banking-core-gateway/middleware"
 	"github.com/gin-gonic/gin"
 )
 
