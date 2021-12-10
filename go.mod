@@ -3,10 +3,12 @@ module github.com/0gener/banking-core-gateway
 go 1.17
 
 require (
+	github.com/0gener/banking-core-accounts v0.0.0-20211209122920-d6367996c85b
 	github.com/auth0/go-jwt-middleware v1.0.1-0.20210719135851-6401fcf7191b
 	github.com/gin-gonic/gin v1.7.7
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/joho/godotenv v1.4.0
+	google.golang.org/grpc v1.42.0
 )
 
 require (
@@ -23,8 +25,10 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/ugorji/go/codec v1.1.7 // indirect
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
+	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110 // indirect
 	golang.org/x/sys v0.0.0-20201119102817-f84b799fce68 // indirect
-	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
+	golang.org/x/text v0.3.3 // indirect
+	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect
 )

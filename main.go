@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/0gener/banking-core-gateway/client"
 	"github.com/0gener/banking-core-gateway/middleware"
 	"github.com/0gener/banking-core-gateway/router"
 	"github.com/joho/godotenv"
@@ -23,7 +24,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("There was an error creating auth0 jwt middleware: %v", err)
 	}
-	r := router.New(jwtMiddleware)
+
+	accountsClient, conn := client.NewAccountsClient()
+	defer conn.Close()
+	accountsController := router.NewAccountsController(accountsClient)
+	r := router.New(jwtMiddleware, accountsController)
 
 	log.Print("Server listening on http://localhost:8080")
 	if err := http.ListenAndServe("0.0.0.0:8080", r); err != nil {

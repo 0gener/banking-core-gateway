@@ -5,11 +5,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func New(jwtMiddleware middleware.JwtMiddleware) *gin.Engine {
+func New(jwtMiddleware middleware.JwtMiddleware, accountsController accountsController) *gin.Engine {
 	r := gin.Default()
-
 	r.GET("/status" /* , jwtMiddleware.EnsureValidToken() */, getStatusHandler)
-	r.POST("/accounts" /* , jwtMiddleware.EnsureValidToken() */, createAccountHandler)
+	r.POST("/accounts" /* , jwtMiddleware.EnsureValidToken() */, accountsController.createAccountHandler)
 
 	return r
 }

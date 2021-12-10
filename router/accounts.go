@@ -1,26 +1,50 @@
 package router
 
 import (
+	"context"
+	"log"
 	"net/http"
 
+	"github.com/0gener/banking-core-accounts/proto"
 	"github.com/gin-gonic/gin"
 )
+
+type accountsController struct {
+	accountsClient proto.AccountsServiceClient
+}
+
+func NewAccountsController(accountsClient proto.AccountsServiceClient) accountsController {
+	return accountsController{
+		accountsClient,
+	}
+}
 
 type createAccountRequest struct {
 	ClientId *string `json:"client_id"`
 }
 
 type createAccountResponse struct {
-	Message string `json:"message"`
+	AccountNumber string `json:"account_number"`
+	Currency      string `json:"currency"`
 }
 
-func createAccountHandler(ctx *gin.Context) {
+func (c *accountsController) createAccountHandler(ctx *gin.Context) {
 	body := createAccountRequest{}
 	if err := ctx.BindJSON(&body); err != nil {
 		return
 	}
 
+	res, err := c.accountsClient.CreateAccount(context.Background(), &proto.CreateAccountRequest{
+		UserId:   "1234",
+		Currency: "EUR",
+	})
+
+	if err != nil {
+		log.Println(err)
+	}
+
 	ctx.JSON(http.StatusCreated, createAccountResponse{
-		Message: "account was created",
+		AccountNumber: res.AccountNumber,
+		Currency:      res.Currency,
 	})
 }
