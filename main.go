@@ -25,10 +25,11 @@ func main() {
 		log.Fatalf("There was an error creating auth0 jwt middleware: %v", err)
 	}
 
-	accountsClient, conn := client.NewAccountsClient()
+	accountsClient, conn := client.NewAccountsClient(client.AccountsClientOptions{
+		Url: os.Getenv("ACCOUNTS_SERVICE_URL"),
+	})
 	defer conn.Close()
-	accountsController := router.NewAccountsController(accountsClient)
-	r := router.New(jwtMiddleware, accountsController)
+	r := router.New(jwtMiddleware, accountsClient)
 
 	log.Print("Server listening on http://localhost:8080")
 	if err := http.ListenAndServe("0.0.0.0:8080", r); err != nil {

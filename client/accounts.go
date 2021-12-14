@@ -7,11 +7,15 @@ import (
 	"google.golang.org/grpc"
 )
 
-func NewAccountsClient() (proto.AccountsServiceClient, *grpc.ClientConn) {
+type AccountsClientOptions struct {
+	Url string
+}
+
+func NewAccountsClient(options AccountsClientOptions) (proto.AccountsServiceClient, *grpc.ClientConn) {
 	var opts []grpc.DialOption
 	opts = append(opts, grpc.WithInsecure())
 
-	conn, err := grpc.Dial("localhost:5000", opts...)
+	conn, err := grpc.Dial(options.Url, opts...)
 	if err != nil {
 		log.Fatalf("fail to dial: %v", err)
 	}

@@ -13,7 +13,7 @@ type accountsController struct {
 	accountsClient proto.AccountsServiceClient
 }
 
-func NewAccountsController(accountsClient proto.AccountsServiceClient) accountsController {
+func newAccountsController(accountsClient proto.AccountsServiceClient) accountsController {
 	return accountsController{
 		accountsClient,
 	}
@@ -44,7 +44,7 @@ func (c *accountsController) createAccountHandler(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, createAccountResponse{
-		AccountNumber: res.AccountNumber,
-		Currency:      res.Currency,
+		AccountNumber: res.Account.AccountNumber,
+		Currency:      res.Account.Currency,
 	})
 }
