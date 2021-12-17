@@ -2,7 +2,6 @@ package router
 
 import (
 	"context"
-	"log"
 	"net/http"
 
 	"github.com/0gener/banking-core-accounts/proto"
@@ -20,7 +19,7 @@ func newAccountsController(accountsClient proto.AccountsServiceClient) accountsC
 }
 
 type createAccountRequest struct {
-	ClientId *string `json:"client_id"`
+	Currency *string `json:"currency"`
 }
 
 type createAccountResponse struct {
@@ -29,18 +28,24 @@ type createAccountResponse struct {
 }
 
 func (c *accountsController) createAccountHandler(ctx *gin.Context) {
-	body := createAccountRequest{}
-	if err := ctx.BindJSON(&body); err != nil {
+	req := createAccountRequest{}
+	if err := ctx.BindJSON(&req); err != nil {
+		return
+	}
+
+	if req.Currency == nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
 	res, err := c.accountsClient.CreateAccount(context.Background(), &proto.CreateAccountRequest{
 		UserId:   "1234",
-		Currency: "EUR",
+		Currency: *req.Currency,
 	})
 
 	if err != nil {
-		log.Println(err)
+		ctx.AbortWithStatus(http.StatusInternalServerError)
+		return
 	}
 
 	ctx.JSON(http.StatusCreated, createAccountResponse{
