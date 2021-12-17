@@ -16,42 +16,47 @@ import (
 	"google.golang.org/grpc"
 )
 
-type testCase struct {
+type createAccountTestCase struct {
 	name                   string
 	request                *createAccountRequest
 	expectedStatusCode     int
 	expectedResponse       *createAccountResponse
 	expectedError          error
-	accountsClientResponse interface{}
+	accountsClientResponse *proto.CreateAccountResponse
+	accountsClientError    error
+}
+
+type getAccountTestCase struct {
+	name                   string
+	expectedStatusCode     int
+	expectedResponse       *getAccountResponse
+	expectedError          error
+	accountsClientResponse *proto.GetAccountResponse
 	accountsClientError    error
 }
 
 type testAccountsClient struct {
-	t  *testing.T
-	tc testCase
+	t                     *testing.T
+	createAccountTestCase createAccountTestCase
+	getAccountTestCase    getAccountTestCase
 }
 
 func (c *testAccountsClient) CreateAccount(ctx context.Context, in *proto.CreateAccountRequest, opts ...grpc.CallOption) (*proto.CreateAccountResponse, error) {
-	if *c.tc.request.Currency != in.Currency {
-		c.t.Errorf("expected currency %s, got %s", *c.tc.request.Currency, in.Currency)
+	if *c.createAccountTestCase.request.Currency != in.Currency {
+		c.t.Errorf("expected currency %s, got %s", *c.createAccountTestCase.request.Currency, in.Currency)
 	}
 
-	var response *proto.CreateAccountResponse
-	if c.tc.accountsClientResponse != nil {
-		response = c.tc.accountsClientResponse.(*proto.CreateAccountResponse)
-	}
-
-	return response, c.tc.accountsClientError
+	return c.createAccountTestCase.accountsClientResponse, c.createAccountTestCase.accountsClientError
 }
 
 func (c *testAccountsClient) GetAccount(ctx context.Context, in *proto.GetAccountRequest, opts ...grpc.CallOption) (*proto.GetAccountResponse, error) {
-	return c.tc.accountsClientResponse.(*proto.GetAccountResponse), c.tc.accountsClientError
+	return c.getAccountTestCase.accountsClientResponse, c.getAccountTestCase.accountsClientError
 }
 
 func TestCreateAccountHandler(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	currency := "1234"
-	testCases := []testCase{
+	testCases := []createAccountTestCase{
 		{
 			name: "valid request",
 			request: &createAccountRequest{
@@ -107,13 +112,13 @@ func TestCreateAccountHandler(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			accountsClient := testAccountsClient{t, tc}
-			accountsController := newAccountsController(&accountsClient)
+			accountsClient := testAccountsClient{
+				t:                     t,
+				createAccountTestCase: tc,
+			}
 
 			rec := httptest.NewRecorder()
-			_, r := gin.CreateTestContext(rec)
-
-			r.POST("/accounts", accountsController.createAccountHandler)
+			r := New(nil, &accountsClient)
 
 			var reader io.Reader
 			if tc.request != nil {
@@ -125,7 +130,7 @@ func TestCreateAccountHandler(t *testing.T) {
 			r.ServeHTTP(rec, request)
 
 			if rec.Code != tc.expectedStatusCode {
-				t.Errorf("expected status code %d, got %d", rec.Code, tc.expectedStatusCode)
+				t.Errorf("expected status code %d, got %d", tc.expectedStatusCode, rec.Code)
 			}
 
 			bytes, _ := ioutil.ReadAll(rec.Body)
@@ -133,6 +138,75 @@ func TestCreateAccountHandler(t *testing.T) {
 
 			if len(bytes) > 0 {
 				response = &createAccountResponse{}
+				json.Unmarshal(bytes, response)
+			}
+
+			if response == nil || tc.expectedResponse == nil {
+				if response != tc.expectedResponse {
+					t.Errorf("expected response %s, got %s", tc.expectedResponse, response)
+				}
+			} else if *response != *tc.expectedResponse {
+				t.Errorf("expected response %s, got %s", *tc.expectedResponse, *response)
+			}
+		})
+	}
+}
+
+func TestGetAccountHandler(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	testCases := []getAccountTestCase{
+		{
+			name:               "valid request",
+			expectedStatusCode: http.StatusOK,
+			expectedResponse: &getAccountResponse{
+				AccountNumber: "1234",
+				Currency:      "EUR",
+			},
+			expectedError: nil,
+			accountsClientResponse: &proto.GetAccountResponse{
+				Account: &proto.Account{
+					AccountNumber: "1234",
+					Currency:      "EUR",
+				},
+			},
+			accountsClientError: nil,
+		},
+		{
+			name:                   "accounts service error",
+			expectedStatusCode:     http.StatusInternalServerError,
+			expectedResponse:       nil,
+			expectedError:          nil,
+			accountsClientResponse: nil,
+			accountsClientError:    errors.New("just a random error"),
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			accountsClient := testAccountsClient{
+				t:                  t,
+				getAccountTestCase: tc,
+			}
+
+			rec := httptest.NewRecorder()
+			r := New(nil, &accountsClient)
+
+			request := httptest.NewRequest("GET", "/accounts", nil)
+
+			r.ServeHTTP(rec, request)
+
+			if rec.Code != tc.expectedStatusCode {
+				t.Errorf("expected status code %d, got %d", tc.expectedStatusCode, rec.Code)
+			}
+
+			bytes, _ := ioutil.ReadAll(rec.Body)
+			var response *getAccountResponse
+
+			if len(bytes) > 0 {
+				response = &getAccountResponse{}
 				json.Unmarshal(bytes, response)
 			}
 

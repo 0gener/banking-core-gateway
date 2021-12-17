@@ -27,6 +27,11 @@ type createAccountResponse struct {
 	Currency      string `json:"currency"`
 }
 
+type getAccountResponse struct {
+	AccountNumber string `json:"account_number"`
+	Currency      string `json:"currency"`
+}
+
 func (c *accountsController) createAccountHandler(ctx *gin.Context) {
 	req := createAccountRequest{}
 	if err := ctx.BindJSON(&req); err != nil {
@@ -49,6 +54,22 @@ func (c *accountsController) createAccountHandler(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, createAccountResponse{
+		AccountNumber: res.Account.AccountNumber,
+		Currency:      res.Account.Currency,
+	})
+}
+
+func (c *accountsController) getAccountHandler(ctx *gin.Context) {
+	res, err := c.accountsClient.GetAccount(context.Background(), &proto.GetAccountRequest{
+		UserId: "1234",
+	})
+
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, getAccountResponse{
 		AccountNumber: res.Account.AccountNumber,
 		Currency:      res.Account.Currency,
 	})
