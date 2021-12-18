@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"github.com/0gener/banking-core-accounts/proto"
+	"github.com/0gener/banking-core-gateway/middleware"
+	jwtmiddleware "github.com/auth0/go-jwt-middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -33,6 +35,8 @@ type getAccountResponse struct {
 }
 
 func (c *accountsController) createAccountHandler(ctx *gin.Context) {
+	var claims = ctx.Request.Context().Value(jwtmiddleware.ContextKey{}).(*middleware.CustomClaims)
+
 	req := createAccountRequest{}
 	if err := ctx.BindJSON(&req); err != nil {
 		return
@@ -44,7 +48,7 @@ func (c *accountsController) createAccountHandler(ctx *gin.Context) {
 	}
 
 	res, err := c.accountsClient.CreateAccount(context.Background(), &proto.CreateAccountRequest{
-		UserId:   "1234",
+		UserId:   claims.Subject,
 		Currency: *req.Currency,
 	})
 
@@ -60,12 +64,19 @@ func (c *accountsController) createAccountHandler(ctx *gin.Context) {
 }
 
 func (c *accountsController) getAccountHandler(ctx *gin.Context) {
+	var claims = ctx.Request.Context().Value(jwtmiddleware.ContextKey{}).(*middleware.CustomClaims)
+
 	res, err := c.accountsClient.GetAccount(context.Background(), &proto.GetAccountRequest{
-		UserId: "1234",
+		UserId: claims.Subject,
 	})
 
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	if res.Account == nil {
+		ctx.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 
