@@ -6,6 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type errorResponse struct {
+	Message string `json:"message"`
+}
+
 func New(jwtMiddleware middleware.JwtMiddleware, accountsClient proto.AccountsServiceClient) *gin.Engine {
 	r := gin.Default()
 	accountsController := newAccountsController(accountsClient)
