@@ -1,14 +1,32 @@
 package router
 
 import (
+	"context"
 	"testing"
 
+	"github.com/0gener/banking-core-gateway/middleware"
+	jwtmiddleware "github.com/auth0/go-jwt-middleware"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 )
+
+type testJwtMiddleware struct{}
+
+func (j *testJwtMiddleware) EnsureValidToken() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		claims := &middleware.CustomClaims{
+			StandardClaims: jwt.StandardClaims{
+				Subject: "userId|1234",
+			},
+		}
+		r := c.Request.Clone(context.WithValue(context.Background(), jwtmiddleware.ContextKey{}, claims))
+		c.Request = r
+	}
+}
 
 func TestNew(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	r := New(nil, nil)
+	r := New(&testJwtMiddleware{}, nil)
 	ri := r.Routes()
 
 	if len(ri) != 3 {

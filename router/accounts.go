@@ -71,9 +71,7 @@ func (c *accountsController) getAccountHandler(ctx *gin.Context) {
 	})
 
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, errorResponse{
-			Message: err.Error(),
-		})
+		ctx.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 

@@ -55,10 +55,11 @@ func (c *testAccountsClient) GetAccount(ctx context.Context, in *proto.GetAccoun
 
 func TestCreateAccountHandler(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+
 	currency := "1234"
 	testCases := []createAccountTestCase{
 		{
-			name: "valid request",
+			name: "valid_request",
 			request: &createAccountRequest{
 				Currency: &currency,
 			},
@@ -77,7 +78,7 @@ func TestCreateAccountHandler(t *testing.T) {
 			accountsClientError: nil,
 		},
 		{
-			name:                   "no request",
+			name:                   "no_request",
 			request:                nil,
 			expectedStatusCode:     http.StatusBadRequest,
 			expectedResponse:       nil,
@@ -86,7 +87,7 @@ func TestCreateAccountHandler(t *testing.T) {
 			accountsClientError:    nil,
 		},
 		{
-			name:                   "request without currency",
+			name:                   "request_without_currency",
 			request:                &createAccountRequest{},
 			expectedStatusCode:     http.StatusBadRequest,
 			expectedResponse:       nil,
@@ -95,7 +96,7 @@ func TestCreateAccountHandler(t *testing.T) {
 			accountsClientError:    nil,
 		},
 		{
-			name: "accounts service error",
+			name: "accounts_service_error",
 			request: &createAccountRequest{
 				Currency: &currency,
 			},
@@ -118,7 +119,7 @@ func TestCreateAccountHandler(t *testing.T) {
 			}
 
 			rec := httptest.NewRecorder()
-			r := New(nil, &accountsClient)
+			r := New(&testJwtMiddleware{}, &accountsClient)
 
 			var reader io.Reader
 			if tc.request != nil {
@@ -156,7 +157,7 @@ func TestGetAccountHandler(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	testCases := []getAccountTestCase{
 		{
-			name:               "valid request",
+			name:               "valid_request",
 			expectedStatusCode: http.StatusOK,
 			expectedResponse: &getAccountResponse{
 				AccountNumber: "1234",
@@ -172,7 +173,7 @@ func TestGetAccountHandler(t *testing.T) {
 			accountsClientError: nil,
 		},
 		{
-			name:                   "accounts service error",
+			name:                   "accounts_service_error",
 			expectedStatusCode:     http.StatusInternalServerError,
 			expectedResponse:       nil,
 			expectedError:          nil,
@@ -192,7 +193,7 @@ func TestGetAccountHandler(t *testing.T) {
 			}
 
 			rec := httptest.NewRecorder()
-			r := New(nil, &accountsClient)
+			r := New(&testJwtMiddleware{}, &accountsClient)
 
 			request := httptest.NewRequest("GET", "/accounts", nil)
 
@@ -212,10 +213,10 @@ func TestGetAccountHandler(t *testing.T) {
 
 			if response == nil || tc.expectedResponse == nil {
 				if response != tc.expectedResponse {
-					t.Errorf("expected response %s, got %s", response, tc.expectedResponse)
+					t.Errorf("expected response %v, got %v", tc.expectedResponse, response)
 				}
 			} else if *response != *tc.expectedResponse {
-				t.Errorf("expected response %s, got %s", *response, *tc.expectedResponse)
+				t.Errorf("expected response %v, got %v", *tc.expectedResponse, *response)
 			}
 		})
 	}
