@@ -75,7 +75,7 @@ func (c *accountsController) getAccountHandler(ctx *gin.Context) {
 		return
 	}
 
-	if res.Account == nil {
+	if res == nil || res.Account == nil {
 		ctx.AbortWithStatus(http.StatusNotFound)
 		return
 	}

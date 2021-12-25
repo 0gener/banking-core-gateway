@@ -10,7 +10,7 @@ func New(jwtMiddleware middleware.JwtMiddleware, accountsClient proto.AccountsSe
 	accountsController := newAccountsController(accountsClient)
 
 	r := gin.Default()
-	r.GET("/status", jwtMiddleware.EnsureValidToken(), getStatusHandler)
+	r.GET("/status", getStatusHandler)
 
 	r.POST("/accounts", jwtMiddleware.EnsureValidToken(), accountsController.createAccountHandler)
 	r.GET("/accounts", jwtMiddleware.EnsureValidToken(), accountsController.getAccountHandler)

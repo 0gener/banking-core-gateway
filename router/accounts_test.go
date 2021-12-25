@@ -173,6 +173,24 @@ func TestGetAccountHandler(t *testing.T) {
 			accountsClientError: nil,
 		},
 		{
+			name:                   "accounts_service_returns_nil",
+			expectedStatusCode:     http.StatusNotFound,
+			expectedResponse:       nil,
+			expectedError:          nil,
+			accountsClientResponse: nil,
+			accountsClientError:    nil,
+		},
+		{
+			name:               "accounts_service_returns_nil_account",
+			expectedStatusCode: http.StatusNotFound,
+			expectedResponse:   nil,
+			expectedError:      nil,
+			accountsClientResponse: &proto.GetAccountResponse{
+				Account: nil,
+			},
+			accountsClientError: nil,
+		},
+		{
 			name:                   "accounts_service_error",
 			expectedStatusCode:     http.StatusInternalServerError,
 			expectedResponse:       nil,
